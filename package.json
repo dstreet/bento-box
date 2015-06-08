@@ -1,0 +1,35 @@
+{
+  "name": "bento-box",
+  "version": "0.0.1",
+  "description": "Application framework for Node.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha test/unit --recursive",
+    "coverage": "./node_modules/mocha/bin/mocha test/unit --require blanket -R html-cov --recursive > coverage.html"
+  },
+  "author": "David Street",
+  "license": "MIT",
+  "devDependencies": {
+    "blanket": "^1.1.7",
+    "chai": "^2.3.0",
+    "chai-spies": "^0.6.0",
+    "mocha": "^2.2.4"
+  },
+  "dependencies": {
+    "check-types": "^3.2.0",
+    "ejs": "^2.3.1",
+    "extend": "^2.0.1",
+    "hashids": "^1.0.1",
+    "lodash": "^3.9.3",
+    "typechecker": "^2.0.8"
+  },
+  "config": {
+    "blanket": {
+      "pattern": "",
+      "data-cover-never": ["node_modules", "test"],
+      "data-cover-reporter-options": {
+        "shortnames": true
+      }
+    }
+  }
+}

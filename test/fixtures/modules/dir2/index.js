@@ -1,0 +1,1 @@
+module.exports = { name: "root", module4: { name: "foo" } }
