@@ -118,6 +118,63 @@ describe('Observable', function() {
 			expect(obs._dataMatchesFilter(['item1'], ['item1'])).to.be.false
 			expect(obs._dataMatchesFilter({ item: 1 }, { item: 1 })).to.be.false
 		})
+
+		it('should pass the same data to the filter as is passed to the responder callback', function() {
+			var filterData
+			var cb = chai.spy()
+			var filter = chai.spy(function(data) { filterData = data; return true })
+
+			obs._actionMethod(cb, filter)
+			obs.emit({foo: 'bar'})
+
+			expect(cb).to.have.been.called.with(filterData)
+
+			obs.emit('foo', 'bar')
+
+			expect(cb).to.have.been.called.with(filterData)
+		})
+	})
+
+	describe('_dataWithKeyMatchesFilter()', function() {
+		var obs
+
+		beforeEach(function() {
+			obs = new Observable('remove')
+		})
+
+		it('should pass the action data to the filter function', function() {
+			var filter = chai.spy(function(key, data) {})
+			obs._dataWithKeyMatchesFilter('items', 'item1', filter)
+
+			expect(filter).to.have.been.called.with('items')
+			expect(filter).to.have.been.called.with('item1')
+		})
+
+		it('should return true if the filter function returns true', function() {
+			var filter = chai.spy(function(data) { return true })
+			expect(obs._dataWithKeyMatchesFilter('items', 'item1', filter)).to.be.true
+		})
+
+		it('should return false if the filter function returns false', function() {
+			var filter = chai.spy(function(data) { return false })
+			expect(obs._dataWithKeyMatchesFilter('items', 'item1', filter)).to.be.false
+		})
+
+		it('should return true if no filter is defined', function() {
+			expect(obs._dataWithKeyMatchesFilter('items', 'item1')).to.be.true
+			expect(obs._dataWithKeyMatchesFilter('items', 'item1', null)).to.be.true
+			expect(obs._dataWithKeyMatchesFilter('items', 'item1', undefined)).to.be.true
+		})
+
+		it('should return true if a value-based filter exactly matches the key', function() {
+			expect(obs._dataWithKeyMatchesFilter('items', 'item1', 'items')).to.be.true
+			expect(obs._dataWithKeyMatchesFilter(42, 42)).to.be.true
+			expect(obs._dataWithKeyMatchesFilter(this, this)).to.be.true
+		})
+
+		it('should return false if a value-based filter does not exactly match the data', function() {
+			expect(obs._dataWithKeyMatchesFilter('items', 'item1', 'tests')).to.be.false
+		})
 	})
 
 	describe('emit()', function() {
