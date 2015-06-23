@@ -22,6 +22,23 @@ describe('BentoBox', function() {
 			expect(bento._loadConfig()).to.be.instanceof(Object)
 		})
 
+		it('should extend the loaded config with data from the config parameter if object', function() {
+			var config = bento._loadConfig({
+				model: 'testing'
+			})
+
+			expect(config.model).to.eql('testing')
+		})
+
+		it('should return an empty object if no config path or parameter has been supplied', function() {
+			bento._configPath = null
+			expect(bento._loadConfig()).to.be.empty
+		})
+
+		it('should return parameter data if config path does not exist', function() {
+			expect(bento._loadConfig('null')).to.eql('null')
+		})
+
 	})
 
 	describe('getConfig()', function() {

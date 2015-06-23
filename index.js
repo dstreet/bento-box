@@ -9,12 +9,14 @@
  * @license MIT
  */
 
+var fs = require('fs')
+var extend = require('extend')
 var moduleLoader = require('./lib/module-loader')
 var Collection = require('./lib/collection')
 
-var BentoBox = function(configPath) {
-	this._configPath = configPath || 'config'
-	this._config = this._loadConfig()
+var BentoBox = function(config) {
+	this._configPath = 'config'
+	this._config = this._loadConfig(config)
 	this._collections = {}
 }
 
@@ -23,11 +25,32 @@ BentoBox.prototype = {
 	/**
 	 * Load the app configuration from directory
 	 *
+	 * When the config parameter is a string, it is assumed that it is
+	 * the path to a config directory, and will use moduleLoader to
+	 * load the config object.
+	 *
+	 * When the config is an object, data will extend any config object
+	 * loaded from the default config directory.
+	 *
+	 * @param   {String|Object} config
 	 * @returns {Object}
 	 * @private
 	 */
-	_loadConfig: function() {
-		return moduleLoader(this._configPath)
+	_loadConfig: function(config) {
+		var path = typeof config == 'string' ? config : this._configPath
+		var retConfig = {}
+
+		if (fs.existsSync(path)) {
+			retConfig = moduleLoader(path)
+
+			if (typeof config == 'object') {
+				retConfig = extend(true, {}, retConfig, config)
+			}
+		} else {
+			retConfig = config || {}
+		}
+
+		return retConfig
 	},
 
 	/**
