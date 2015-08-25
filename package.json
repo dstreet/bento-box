@@ -1,6 +1,6 @@
 {
   "name": "bento-box",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Application framework for Node.js",
   "main": "index.js",
   "scripts": {
@@ -26,7 +26,10 @@
   "config": {
     "blanket": {
       "pattern": "",
-      "data-cover-never": ["node_modules", "test"],
+      "data-cover-never": [
+        "node_modules",
+        "test"
+      ],
       "data-cover-reporter-options": {
         "shortnames": true
       }
