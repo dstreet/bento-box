@@ -57,12 +57,13 @@ describe('Observable', function() {
 
 		beforeEach(function() {
 			obs = new Observable('add')
-			obs.emit('item1')
-			obs.emit('item2')
-			obs.emit('item3')
 		})
 
 		it('should emit every action to the responder', function() {
+			obs.emit('item1')
+			obs.emit('item2')
+			obs.emit('item3')
+
 			var items = []
 			var fn = chai.spy(function(item) { items.push(item) })
 
@@ -71,8 +72,17 @@ describe('Observable', function() {
 			expect(items).to.eql(['item1', 'item2', 'item3'])
 		})
 
-		it('should only emit actions that match the responders filter', function() {
+		it('should only emit the same data to responder callback and filter', function(done) {
+			var data = { foo: 'bar' }
+			obs.emit(data)
 
+			obs._actionMethod(function(res) {
+				expect(res).to.eql(data)
+				done()
+			}, function(res) {
+				expect(res).to.eql(data)
+				return true
+			})
 		})
 
 	})
