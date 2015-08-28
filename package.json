@@ -4,8 +4,8 @@
   "description": "Application framework for Node.js",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha test/unit --recursive",
-    "coverage": "./node_modules/mocha/bin/mocha test/unit --require blanket -R html-cov --recursive > coverage.html"
+    "test": "./node_modules/mocha/bin/mocha test/unit/**/*",
+    "coverage": "./node_modules/mocha/bin/mocha test/unit --require blanket -R html-cov > coverage.html"
   },
   "author": "David Street",
   "license": "MIT",

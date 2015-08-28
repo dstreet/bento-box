@@ -3,55 +3,60 @@
  * ````````````````````````````````````````````````````````````````````````````
  * The modular, extensible, and stack-agnostic application framework
  * for Node.js
- *
- * @version 0.0.1
- * @author David Street
- * @license MIT
  */
 
-var fs = require('fs')
-var extend = require('extend')
-var moduleLoader = require('./lib/module-loader')
-var Collection = require('./lib/collection')
+var fs           = require('fs')
+var extend       = require('extend')
+var EventEmitter = require('events').EventEmitter
+var ModuleLoader = require('./lib/module-loader')
+var Collection   = require('./lib/collection')
 
 var BentoBox = function(config) {
-	this._configPath = 'config'
-	this._config = this._loadConfig(config)
 	this._collections = {}
+	this._config = config
+}
+
+module.exports = BentoBoxFactory = {
+
+	configPath: 'config',
+
+	getInstance: function(config) {
+		var emitter = new EventEmitter()
+		var path = typeof config == 'string' ? config : this.configPath
+		var loader
+
+		if (fs.existsSync(path)) {
+			loader = ModuleLoader().load(path)
+
+			loader.on('error', function(e) {
+				emitter.emit('error', new Error('Failed to parse config directory'), arrayFromArguments(arguments))
+			})
+
+			loader.on('end', function(d) {
+				sendEnd(extend(true, {}, d, config))
+			})
+		} else {
+			sendEnd(config || {})
+		}
+
+		function sendEnd(configData) {
+			var instance = new BentoBox(configData)
+
+			if (typeof cb == 'function') {
+				cb(instance)
+			}
+
+			emitter.emit('ready', instance)
+		}
+
+		return emitter
+	},
+
+	BentoBox: BentoBox
+
 }
 
 BentoBox.prototype = {
-
-	/**
-	 * Load the app configuration from directory
-	 *
-	 * When the config parameter is a string, it is assumed that it is
-	 * the path to a config directory, and will use moduleLoader to
-	 * load the config object.
-	 *
-	 * When the config is an object, data will extend any config object
-	 * loaded from the default config directory.
-	 *
-	 * @param   {String|Object} config
-	 * @returns {Object}
-	 * @private
-	 */
-	_loadConfig: function(config) {
-		var path = typeof config == 'string' ? config : this._configPath
-		var retConfig = {}
-
-		if (fs.existsSync(path)) {
-			retConfig = moduleLoader(path)
-
-			if (typeof config == 'object') {
-				retConfig = extend(true, {}, retConfig, config)
-			}
-		} else {
-			retConfig = config || {}
-		}
-
-		return retConfig
-	},
 
 	/**
 	 * Load modules from a directory.
@@ -73,11 +78,11 @@ BentoBox.prototype = {
 	 * @return {Object}
 	 * @public
 	 */
-	load: function(dir, collectionName, as) {
+	load: function(dir, collectionName, as, ignore) {
 		return this.loadWithCollectionMap.apply(this, arguments)
 	},
 
-	loadWithCollectionMap: function(dir, collectionName, as) {
+	loadWithCollectionMap: function(dir, collectionName, as, ignore) {
 		var collection = this._collections[collectionName]
 		var as = as || collectionName
 		var context = {
@@ -88,10 +93,10 @@ BentoBox.prototype = {
 			context[as] = collection.getMap()
 		}
 
-		return moduleLoader(dir, context, true)
+		return ModuleLoader(ignore).load(dir, context, true)
 	},
 
-	loadWithCollectionArray: function(dir, collectionName, as) {
+	loadWithCollectionArray: function(dir, collectionName, as, ignore) {
 		var collection = this._collections[collectionName]
 		var as = as || collectionName
 		var context = {
@@ -102,18 +107,25 @@ BentoBox.prototype = {
 			context[as] = collection.getArray()
 		}
 
-		return moduleLoader(dir, context, true)
+		return ModuleLoader(ignore).load(dir, context, true)
 	},
 
 	/**
 	 * Get a config object
+	 *
+	 * If no name is passed, will return entire
+	 * config contents
 	 * 
-	 * @param  {String}  name
+	 * @param  {[String]}  name
 	 * @return {Object}
 	 * @public
 	 */
 	getConfig: function(name) {
-		return this._config[name]
+		if (name) {
+			return this._config[name]
+		} else {
+			return this._config
+		}
 	},
 
 	/**
@@ -140,7 +152,7 @@ BentoBox.prototype = {
 	 * @public
 	 */
 	add: function(collection) {
-		var args = Array.prototype.slice.call(arguments)
+		var args = arrayFromArguments(arguments)
 
 		if (!this._collections.hasOwnProperty(collection)) {
 			this.create(collection)
@@ -161,7 +173,7 @@ BentoBox.prototype = {
 	 * @public
 	 */
 	remove: function(collection) {
-		var args = Array.prototype.slice.call(arguments)
+		var args = arrayFromArguments(arguments)
 
 		if (!this._collections.hasOwnProperty(collection)) {
 			this.create(collection)
@@ -206,4 +218,12 @@ BentoBox.prototype = {
 
 }
 
-module.exports = BentoBox
+function arrayFromArguments(args) {
+	var arr = []
+
+	for (var i = 0; i < args.length; i++) {
+		arr.push(args[i])
+	}
+
+	return arr
+}
