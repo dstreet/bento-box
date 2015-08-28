@@ -1,49 +1,108 @@
 var chai = require('chai')
 var expect = chai.expect
 var spies = require('chai-spies')
-var Bento = require('../../index')
+var EventEmitter = require('events').EventEmitter
+var BentoBoxFactory = require('../../index')
+var BentoBox = BentoBoxFactory.BentoBox
 var Collection = require('../../lib/collection')
 
 chai.use(spies)
 
 var configPath = 'test/fixtures/config'
 
-describe('BentoBox', function() {
+describe('BentoBoxFactory', function() {
 
-	var bento
+	describe('getInstance()', function() {
 
-	beforeEach(function() {
-		bento = new Bento(configPath)
-	})
-
-	describe('_loadConfig()', function() {
-
-		it('should return a config object', function() {
-			expect(bento._loadConfig()).to.be.instanceof(Object)
+		it('should return an EventEmitter', function() {
+			expect(BentoBoxFactory.getInstance()).to.be.instanceOf(EventEmitter)
 		})
 
-		it('should extend the loaded config with data from the config parameter if object', function() {
-			var config = bento._loadConfig({
-				model: 'testing'
+		it('should trigger the `ready` event when the config has been loaded', function(done) {
+			setTimeout(done, 2000)
+			BentoBoxFactory.configPath = configPath
+			var emitter = BentoBoxFactory.getInstance()
+
+			emitter.on('ready', function() {
+				done()
 			})
-
-			expect(config.model).to.eql('testing')
 		})
 
-		it('should return an empty object if no config path or parameter has been supplied', function() {
-			bento._configPath = null
-			expect(bento._loadConfig()).to.be.empty
+		it('should call the callback when the config has been loaded', function(done) {
+			setTimeout(done, 2000)
+			BentoBoxFactory.configPath = configPath
+			BentoBoxFactory.getInstance(function() {
+				done()
+			})
 		})
 
-		it('should return parameter data if config path does not exist', function() {
-			expect(bento._loadConfig('null')).to.eql('null')
+		it('should pass a new BentoBox instance to the \'ready\' event listener', function(done) {
+			setTimeout(done, 2000)
+			BentoBoxFactory.configPath = configPath
+			var emitter = BentoBoxFactory.getInstance()
+
+			emitter.on('ready', function(instance) {
+				expect(instance).to.be.instanceOf(BentoBox)
+				done()
+			})
+		})
+
+		it('should cpass a new BentoBox instance to the callback', function(done) {
+			setTimeout(done, 2000)
+			BentoBoxFactory.configPath = configPath
+			BentoBoxFactory.getInstance(function(instance) {
+				expect(instance).to.be.instanceOf(BentoBox)
+				done()
+			})
+		})
+
+		it('should pass a new BentoBox instance with proper config', function(done) {
+			setTimeout(done, 2000)
+			BentoBoxFactory.configPath = configPath
+			var emitter = BentoBoxFactory.getInstance({
+					server: {
+						port: 8000,
+						host: 'foo.com'
+					}
+				})
+
+			emitter.on('ready', function(instance) {
+				var config = instance.getConfig()
+
+				expect(config).to.haveOwnProperty('server')
+				expect(config).to.haveOwnProperty('controller')
+				expect(config).to.haveOwnProperty('model')
+				expect(config).to.haveOwnProperty('view')
+				expect(config).to.haveOwnProperty('router')
+				expect(config.server.port).to.equal(8000)
+				expect(config.server.host).to.equal('foo.com')
+				expect(config.server.timeout).to.equal(200)
+				done()
+			})
 		})
 
 	})
+
+})
+
+describe('BentoBox', function() {
 
 	describe('getConfig()', function() {
 
+		var bento
+
+		before(function(done) {
+			BentoBoxFactory.configPath = configPath
+			factory = BentoBoxFactory.getInstance()
+
+			factory.on('ready', function(instance) {
+				bento = instance
+				done()
+			})
+		})
+
 		it('should return the config of a specified property', function() {
+
 			expect(bento.getConfig('server')).to.be.an('object')
 		})
 
@@ -55,25 +114,73 @@ describe('BentoBox', function() {
 
 	describe('load()', function() {
 
-		it('should attach the collection as a map to the loaded resources', function() {
+		var bento
+
+		before(function(done) {
+			BentoBoxFactory.configPath = configPath
+			factory = BentoBoxFactory.getInstance()
+
+			factory.on('ready', function(instance) {
+				bento = instance
+				done()
+			})
+		})
+
+		it('should attach the collection as a map to the loaded resources', function(done) {
+			setTimeout(done, 2000)
 			bento.add('models', 'item1', 'foobar')
 
-			expect(bento.load('test/fixtures/withContext', 'models', 'test').context).to.eql({ item1: 'foobar' })
+			var loader = bento.load('test/fixtures/withContext', 'models', 'test')
+
+			loader.on('end', function(d) {
+				expect(d.context).to.eql({ item1: 'foobar' })
+				done()
+			})
 		})
 
 	})
 
 	describe('loadWithCollectionArray()', function() {
 
-		it('should attach the collection as an array to the loaded resources', function() {
+		var bento
+
+		before(function(done) {
+			BentoBoxFactory.configPath = configPath
+			factory = BentoBoxFactory.getInstance()
+
+			factory.on('ready', function(instance) {
+				bento = instance
+				done()
+			})
+		})
+
+		it('should attach the collection as an array to the loaded resources', function(done) {
+			setTimeout(done, 2000)
 			bento.add('models', 'item1', 'foobar')
 
-			expect(bento.loadWithCollectionArray('test/fixtures/withContext', 'models', 'test').context).to.eql(['foobar'])
+			var loader = bento.loadWithCollectionArray('test/fixtures/withContext', 'models', 'test')
+
+			loader.on('end', function(d) {
+				expect(d.context).to.eql(['foobar'])
+				done()
+			})
 		})
 
 	})
 
 	describe('create()', function() {
+
+		var bento
+
+		beforeEach(function(done) {
+			BentoBoxFactory.configPath = configPath
+			factory = BentoBoxFactory.getInstance()
+
+			factory.on('ready', function(instance) {
+				bento = instance
+				done()
+			})
+		})
 
 		it('should add the collection to the list', function() {
 			bento.create('items')
@@ -87,7 +194,7 @@ describe('BentoBox', function() {
 
 			var fn = function() { bento.create('items') }
 
-			expect(fn).to.throw(Error)
+			expect(fn).to.throw()
 		})
 
 		it('should return the new collection instance', function() {
@@ -97,6 +204,18 @@ describe('BentoBox', function() {
 	})
 
 	describe('add()', function() {
+
+		var bento
+
+		beforeEach(function(done) {
+			BentoBoxFactory.configPath = configPath
+			factory = BentoBoxFactory.getInstance()
+
+			factory.on('ready', function(instance) {
+				bento = instance
+				done()
+			})
+		})
 
 		it('should call the `add` method of the collection', function() {
 			var coll = bento.create('items')
@@ -116,6 +235,18 @@ describe('BentoBox', function() {
 
 	describe('on()', function() {
 
+		var bento
+
+		beforeEach(function(done) {
+			BentoBoxFactory.configPath = configPath
+			factory = BentoBoxFactory.getInstance()
+
+			factory.on('ready', function(instance) {
+				bento = instance
+				done()
+			})
+		})
+
 		it('should return an object containing each action method of the collection', function() {
 			var coll = bento.create('items')
 
@@ -131,6 +262,18 @@ describe('BentoBox', function() {
 	})
 
 	describe('off()', function() {
+
+		var bento
+
+		beforeEach(function(done) {
+			BentoBoxFactory.configPath = configPath
+			factory = BentoBoxFactory.getInstance()
+
+			factory.on('ready', function(instance) {
+				bento = instance
+				done()
+			})
+		})
 
 		it('should return an object containing each unsubscribe action method of the collection', function() {
 			var coll = bento.create('items')

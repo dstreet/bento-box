@@ -1,7 +1,8 @@
 module.exports = {
 
 	server: {
-		port: 3001
+		port: 3001,
+		timeout: 200
 	},
 
 	controller: {
