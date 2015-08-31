@@ -5,11 +5,12 @@
  * for Node.js
  */
 
-var fs           = require('fs')
-var extend       = require('extend')
-var EventEmitter = require('events').EventEmitter
-var ModuleLoader = require('./lib/module-loader')
-var Collection   = require('./lib/collection')
+var fs             = require('fs')
+var extend         = require('extend')
+var EventEmitter   = require('events').EventEmitter
+var ModuleLoader   = require('./lib/module-loader')
+var Collection     = require('./lib/collection')
+var extension      = require('./lib/extension')
 
 var BentoBox = function(config) {
 	this._collections = {}
@@ -20,7 +21,7 @@ module.exports = BentoBoxFactory = {
 
 	configPath: 'config',
 
-	getInstance: function(config) {
+	getInstance: function(config, cb) {
 		var emitter = new EventEmitter()
 		var path = typeof config == 'string' ? config : this.configPath
 		var loader
@@ -147,7 +148,7 @@ BentoBox.prototype = {
 	 *
 	 * If the collection does not exist, it will be created
 	 * 
-	 * @param {String}   collection
+	 * @param {String} collection
 	 * @param {...*}   args
 	 * @public
 	 */
@@ -214,6 +215,43 @@ BentoBox.prototype = {
 		}
 
 		return this._collections[collection].getUnsubscribeActions()
+	},
+
+	/**
+	 * Load an extension
+	 * 
+	 * @param  {Object}  extTemplate
+	 * @param  {[...*]}  initArgs
+	 * @return {Object}
+	 */
+	use: function(extTemplate /*, initArgs */) {
+		var definition = extend(true, {}, extension, extTemplate)
+		var initArgs = arrayFromArguments(arguments)
+		var loadedConfig = {}
+		var configProps
+
+		// Call the extension's init method with initArgs
+		initArgs.shift()
+		definition.init.apply(definition, initArgs)
+
+		// Load the config requested by the extension
+		configProps = definition.getRequestedConfig.call(definition) || []
+
+		if (typeof configProps == 'string' && this._config.hasOwnProperty(configProps)) {
+			loadedConfig = this._config[configProps]
+		} else if (Array.isArray(configProps)) {
+			configProps.forEach(function(prop) {
+				if (this._config.hasOwnProperty(prop)) {
+					loadedConfig[prop] = this._config[prop]
+				}
+			})
+		}
+
+		// Call the extension's ready method with the bento box instance and config
+		definition.ready.call(definition, this, loadedConfig)
+
+		// Return the extension's public api
+		return definition.getAccessors.call(definition)
 	}
 
 }
