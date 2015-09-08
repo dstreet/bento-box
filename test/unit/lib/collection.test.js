@@ -28,6 +28,10 @@ describe('Collection', function() {
 			expect(coll._actions).to.haveOwnProperty('remove')
 		})
 
+		it('should create a "log" action', function() {
+			expect(coll._actions).to.haveOwnProperty('log')
+		})
+
 	})
 
 	describe('createAction()', function() {
@@ -180,7 +184,7 @@ describe('Collection', function() {
 		
 	})
 
-	describe('remove', function() {
+	describe('remove()', function() {
 		
 		var coll
 
@@ -216,6 +220,24 @@ describe('Collection', function() {
 			coll.remove('item1')
 
 			expect(coll._actions.remove.emit).to.not.have.been.called
+		})
+
+	})
+
+	describe('log()', function() {
+
+		var coll
+
+		before(function() {
+			coll = new Collection('items')
+		})
+
+		it('should call the `emit` method of the "log" action\'s observer', function() {
+			chai.spy.on(coll._actions.log, 'emit')
+
+			coll.log('this is a test', 'warn')
+
+			expect(coll._actions.log.emit).to.have.been.called.once
 		})
 
 	})
