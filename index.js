@@ -186,6 +186,28 @@ BentoBox.prototype = {
 	},
 
 	/**
+	 * Log a message relating to a collection
+	 *
+	 * If the collection does not exist, it will be created
+	 *
+	 * @param {String} collection
+	 * @param {String} message
+	 * @param {String} level
+	 * @public
+	 */
+	log: function(collection, message, level) {
+		var args = arrayFromArguments(arguments)
+
+		if (!this._collections.hasOwnProperty(collection)) {
+			this.create(collection)
+		}
+
+		args.shift()
+
+		this._collections[collection].log.apply(this._collections[collection], args)
+	},
+
+	/**
 	 * Get the action methods for the collection
 	 *
 	 * If the collection does not exist, it will be created
