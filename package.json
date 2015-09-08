@@ -1,6 +1,6 @@
 {
   "name": "bento-box",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Application framework for Node.js",
   "main": "index.js",
   "scripts": {
