@@ -69,6 +69,15 @@ describe('module-loader', function() {
 			}, 500)
 		})
 
+		it('should merge environment-specific properties', function(done) {
+			var loader = ModuleLoader(null, true, 'production').load(modulesPath)
+
+			loader.on('end', function(config) {
+				expect(config.module1.envTest).to.equal('bar')
+				done()
+			})
+		})
+
 	})
 
 	describe('on(\'data\')', function() {

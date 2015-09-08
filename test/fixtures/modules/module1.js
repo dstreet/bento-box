@@ -1,1 +1,4 @@
-module.exports = { name: "module1" }
+module.exports = {
+	name: "module1",
+	envTest: 'foo'
+}
