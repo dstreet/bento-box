@@ -7,68 +7,114 @@ Application framework for Node.js
 - Extensible
 - Stack Agnostic
 
+## Overview
+
+The primary purpose of Bento Box is to provide a strong and consistent
+application structure with little to no opinion on various stack components.
+Bento Box is completely modular, and needs only a small interface layer to work
+with other various frameworks and services for your web application.
+
+Bento Box offers what are called collections. These collections are observable
+streams of data that are subscribed to by various components. These streams
+will, most likely, contain modules needed to perform a particular task. One
+example might be to push a route to an express instance. See Collections below
+for more information.
+
 ## Install
 
 ```
 npm install bento-box
 ```
 
-## API
-
-### Config
-
-Configuration settings for Bento Box is stored in a single location.
-Components should request a configuration object from Bento Box
+## Basic Usage
 
 ```
-bento.getConfig('router')
+var BentoBoxFactory = require('bento-box')
+var bentoEmitter = BentoBoxFactory.getInstance()
+
+bentoEmitter.on('ready', function(bento) {
+    // Bento Box is ready, do something awesome
+})
 ```
 
-### Collections
+## Application Configuration
 
-Collections can be seen as data tunnels through Bento Box. Components can
-publish and subscribe to collections to inform, or be informed of updates
-to the application structure and data.
-
-#### Publishing to a collection
-
-```
-bento.create('routes')
-bento.add('routes', { method: 'get', path: '/', function(req, res) {} })
-```
-
-#### Subscribing to a collection
+Bento Box offers centralized appliation configuration, which is loaded
+asynchronously when a Bento Box instance is first created Config be default are
+loaded from the `config` directory in the project root. The config loader
+recursively loads files in the `config` directory has node modules. As an
+example the following tree would return:
 
 ```
-var onAdd = function(route) {}
-
-bento.on('routes').add(onAdd)
-bento.on('routes').remove(runction(route) {})
+── config
+   ├─ index.js
+   ├─ server
+   │  ├─ routes.js
+   │  └─ settings.js
+   ├─ database.js
+   └─ production.js
+```
+```
+{
+    database: // exports from database.js,
+    production: // exports from production.js,
+    server: {
+      routes:   // exports from server/routes.js,
+      settings: // exports from server/settings.js
+    }
+}
 ```
 
-#### Unsubscribing from a collection
+When an `index.js` file is present in a directory, it serves as the base for
+all other exports in that directory. For example, see how the exports from
+`database.js` override those from `index.js`.
 
 ```
-bento.off('routes').add(onAdd)
+// index.js
+module.exports = {
+    database: {
+        host: 'http://localhost'
+    }
+}
+
+// database.js
+module.exports = {
+    host: 'http://127.0.0.1'
+}
+
+// results
+{
+    database: {
+        host: 'http://127.0.0.1'
+    }
+    ...
+}
 ```
 
-### Loading Modules
-
-Bento Box offers a helper method to load modules. Essentially, it is
-require for an entire directory tree. Additionally, collections can
-be passed to the required resources to allow for direct access.
-
-#### Loading a Directory Tree
+Additionally, the configuration loader is environment aware, and any top-level
+exports matching the current `NODE_ENV` will override all others. Using the
+above example, if the `NODE_ENV` is set to 'production':
 
 ```
-var modules = bento.load('/path/to/modules')
+// production.js
+module.exports = {
+    database: {
+        host: 'http://68.102.3.1'
+    }
+}
+
+// result
+{
+    database: {
+        host: 'http://68.102.3.1'
+    }
+    ...
+}
 ```
 
-#### Loading a Directory Tree With a Collection
+## API Documentation
 
-```
-var modules = bento.load('/path/to/modules', 'models')
-```
+[View the documentation](https://github.com/dstreet/bento-box/wiki)
 
 ## Testing
 
@@ -82,4 +128,6 @@ Run coverage report
 npm run coverage
 ```
 
-[Copyright (c) 2015 Exclamation Labs](LICENSE.md)
+---
+
+[Copyright (c) 2015 David Street](LICENSE.md)
