@@ -3,6 +3,10 @@
   "version": "0.4.0",
   "description": "Application framework for Node.js",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dstreet/bento-box.git"
+  },
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha test/unit/**/*",
     "coverage": "./node_modules/mocha/bin/mocha test/unit --require blanket -R html-cov > coverage.html"
@@ -16,12 +20,8 @@
     "mocha": "^2.2.4"
   },
   "dependencies": {
-    "check-types": "^3.2.0",
-    "ejs": "^2.3.1",
     "extend": "^2.0.1",
-    "hashids": "^1.0.1",
-    "lodash": "^3.9.3",
-    "typechecker": "^2.0.8"
+    "hashids": "^1.0.1"
   },
   "config": {
     "blanket": {

@@ -10,7 +10,7 @@ Application framework for Node.js
 ## Install
 
 ```
-npm install --save http://gitlab.exclamationlabs.com/bento-box/bento-box.git
+npm install bento-box
 ```
 
 ## API
