@@ -54,7 +54,7 @@ example the following tree would return:
    ├─ database.js
    └─ production.js
 ```
-```
+```javascript
 {
     database: // exports from database.js,
     production: // exports from production.js,
@@ -65,52 +65,7 @@ example the following tree would return:
 }
 ```
 
-When an `index.js` file is present in a directory, it serves as the base for
-all other exports in that directory. For example, see how the exports from
-`database.js` override those from `index.js`.
-
-```
-// index.js
-module.exports = {
-    database: {
-        host: 'http://localhost'
-    }
-}
-
-// database.js
-module.exports = {
-    host: 'http://127.0.0.1'
-}
-
-// results
-{
-    database: {
-        host: 'http://127.0.0.1'
-    }
-    ...
-}
-```
-
-Additionally, the configuration loader is environment aware, and any top-level
-exports matching the current `NODE_ENV` will override all others. Using the
-above example, if the `NODE_ENV` is set to 'production':
-
-```
-// production.js
-module.exports = {
-    database: {
-        host: 'http://68.102.3.1'
-    }
-}
-
-// result
-{
-    database: {
-        host: 'http://68.102.3.1'
-    }
-    ...
-}
-```
+For more information see [Module Loader](wiki/Module-Loader) on the wiki.
 
 ## API Documentation
 
