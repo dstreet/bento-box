@@ -65,7 +65,7 @@ example the following tree would return:
 }
 ```
 
-For more information see [Module Loader](wiki/Module-Loader) on the wiki.
+For more information see [Module Loader](https://github.com/dstreet/bento-box/wiki/Module-Loader) on the wiki.
 
 ## API Documentation
 
