@@ -347,6 +347,7 @@ describe('BentoBox', function() {
 
 		it('should call the extension\'s ready method with bento instance and requested config', function() {
 			var spy = chai.spy()
+			var spy2 = chai.spy()
 			var ext = {
 				getRequestedConfig: function() {
 					return 'server'
@@ -354,10 +355,21 @@ describe('BentoBox', function() {
 				ready: spy
 			}
 
+			var ext2 = {
+				getRequestedConfig: function() {
+					return null
+				},
+				ready: spy
+			}
+
 			var extApi = bento.use(ext)
+			var extApi2 = bento.use(ext2)
 			expect(spy).to.have.been.called()
 			expect(spy).to.have.been.called.with(bento)
 			expect(spy).to.have.been.called.with({ port: 3001, timeout: 200 })
+
+			expect(spy2).to.have.been.called.with(bento)
+			expect(spy2).to.have.been.called.with(undefined)
 		})
 
 	})

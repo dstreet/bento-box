@@ -249,7 +249,7 @@ BentoBox.prototype = {
 	use: function(extTemplate /*, initArgs */) {
 		var definition = extend(true, {}, extension, extTemplate)
 		var initArgs = arrayFromArguments(arguments)
-		var loadedConfig = {}
+		var loadedConfig
 		var configProps
 
 		// Call the extension's init method with initArgs
@@ -266,7 +266,7 @@ BentoBox.prototype = {
 				if (this._config.hasOwnProperty(prop)) {
 					loadedConfig[prop] = this._config[prop]
 				}
-			})
+			}.bind(this))
 		}
 
 		// Call the extension's ready method with the bento box instance and config
