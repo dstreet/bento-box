@@ -1,3 +1,5 @@
+![Travis CI](https://travis-ci.org/dstreet/bento-box.svg?branch=master)
+
 Bento Box
 =========
 
